@@ -213,3 +213,4 @@ echo -e "   • Documentation: https://docs.hyperdev.io"
 echo -e "   • Issues: https://github.com/hyperdev/issues"
 echo ""
 echo -e "${GREEN}Welcome to regenerative programming! 🌍✨${NC}"
+

@@ -6,15 +6,76 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import { promisify } from 'util';
-import {
-	IAIPersistenceService,
-	IdentityConfig,
-	Identity,
-	Memory,
-	MemoryQuery,
-	ConceptLearning,
-	MemoryStats
-} from '../../../src/vs/workbench/contrib/axiomatic/common/axiomatic';
+// Define interfaces locally for now
+export interface IdentityConfig {
+	name: string;
+	type: string;
+	capabilities: string[];
+	preferences: {
+		learningStyle: string;
+		communicationStyle: string;
+		privacyLevel: string;
+		interactionMode: string;
+	};
+}
+
+export interface Identity {
+	id: string;
+	name: string;
+	type: string;
+	capabilities: string[];
+	preferences: any;
+	createdAt: Date;
+	updatedAt: Date;
+	lastAccessed: Date;
+}
+
+export interface Memory {
+	id: string;
+	type: string;
+	content: string;
+	metadata: any;
+	timestamp: Date;
+}
+
+export interface MemoryQuery {
+	content?: string;
+	type?: string;
+	tags?: string[];
+	limit?: number;
+	offset?: number;
+}
+
+export interface ConceptLearning {
+	concept: string;
+	data: any;
+	context: any;
+	performance: number;
+}
+
+export interface MemoryStats {
+	totalMemories: number;
+	memoriesByType: Record<string, number>;
+	recentActivity: {
+		last24Hours: number;
+		lastWeek: number;
+		lastMonth: number;
+	};
+	consolidationStatus: {
+		lastConsolidation: Date | null;
+		pendingConsolidation: number;
+	};
+}
+
+export interface IAIPersistenceService {
+	initialize(): Promise<void>;
+	createIdentity(config: IdentityConfig): Promise<Identity>;
+	storeMemory(memory: Memory): Promise<void>;
+	getMemories(query: MemoryQuery): Promise<Memory[]>;
+	learnConcept(concept: ConceptLearning): Promise<void>;
+	getMemoryStats(): Promise<MemoryStats>;
+	consolidateMemories(): Promise<void>;
+}
 
 interface AIPersistenceConfig {
 	storagePath: string;
@@ -296,7 +357,7 @@ export class AIPersistenceService implements IAIPersistenceService {
 
 		const rows = await all(sql, params);
 
-		return rows.map(row => ({
+		return rows.map((row: any) => ({
 			id: row.id,
 			type: row.type,
 			content: row.content,

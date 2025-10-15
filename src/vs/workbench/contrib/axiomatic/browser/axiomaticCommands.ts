@@ -30,7 +30,7 @@ registerAction2(class extends Action2 {
 		const logService = accessor.get(ILogService);
 
 		try {
-			const axiomaticService = instantiationService.invokeFunction(accessor => 
+			const axiomaticService = instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 
@@ -57,7 +57,7 @@ registerAction2(class extends Action2 {
 
 	async run(accessor: any): Promise<void> {
 		const commandService = accessor.get(ICommandService);
-		
+
 		// Open the Axiomatic control panel webview
 		await commandService.executeCommand('workbench.view.extension.axiomatic');
 	}
@@ -127,7 +127,7 @@ registerAction2(class extends Action2 {
 		const logService = accessor.get(ILogService);
 
 		try {
-			const axiomaticService = instantiationService.invokeFunction(accessor => 
+			const axiomaticService = instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 
@@ -158,7 +158,7 @@ registerAction2(class extends Action2 {
 		const logService = accessor.get(ILogService);
 
 		try {
-			const axiomaticService = instantiationService.invokeFunction(accessor => 
+			const axiomaticService = instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 
@@ -188,7 +188,7 @@ registerAction2(class extends Action2 {
 		const logService = accessor.get(ILogService);
 
 		try {
-			const axiomaticService = instantiationService.invokeFunction(accessor => 
+			const axiomaticService = instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 
@@ -219,7 +219,7 @@ registerAction2(class extends Action2 {
 		const logService = accessor.get(ILogService);
 
 		try {
-			const axiomaticService = instantiationService.invokeFunction(accessor => 
+			const axiomaticService = instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 

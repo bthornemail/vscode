@@ -22,7 +22,7 @@ suite('Axiomatic Autonomous IDE Extension', () => {
 	test('Commands should be registered', async () => {
 		const commands = await vscode.commands.getCommands(true);
 		const axiomaticCommands = commands.filter(cmd => cmd.startsWith('axiomatic.'));
-		
+
 		assert.ok(axiomaticCommands.includes('axiomatic.initialize'));
 		assert.ok(axiomaticCommands.includes('axiomatic.enableAutonomous'));
 		assert.ok(axiomaticCommands.includes('axiomatic.learnFromFile'));

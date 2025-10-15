@@ -4,58 +4,47 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { AxiomaticService } from './axiomaticService';
-import { AIPersistenceService } from './persistence/embeddedPersistence';
-import { GeometricCommunicationService } from './geometric/geometricCommunication';
-import { AutonomousAgentService } from './agents/autonomousAgentService';
-import { ControlPanelProvider } from './views/controlPanel';
+import { AIPersistenceService, IdentityConfig } from './persistence/embeddedPersistence';
 
-let axiomaticService: AxiomaticService;
-let controlPanelProvider: ControlPanelProvider;
+let aiPersistence: AIPersistenceService;
+let statusBarItem: vscode.StatusBarItem;
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
 	console.log('Axiomatic Autonomous IDE extension is being activated...');
 
 	try {
 		// Initialize AI Persistence (embedded mode)
-		const aiPersistence = new AIPersistenceService({
+		aiPersistence = new AIPersistenceService({
 			storagePath: context.globalStorageUri.fsPath,
 			maxMemories: vscode.workspace.getConfiguration('axiomatic').get('maxMemories', 10000),
 			consolidationThreshold: vscode.workspace.getConfiguration('axiomatic').get('consolidationThreshold', 100)
 		});
 		await aiPersistence.initialize();
 
-		// Initialize Geometric Communication Service
-		const geometricCommunication = new GeometricCommunicationService();
-
-		// Initialize Autonomous Agent Service
-		const autonomousAgentService = new AutonomousAgentService(aiPersistence, geometricCommunication);
-
-		// Initialize main Axiomatic Service
-		axiomaticService = new AxiomaticService(
-			aiPersistence,
-			geometricCommunication,
-			autonomousAgentService
-		);
-		await axiomaticService.initialize();
-
-		// Initialize Control Panel Provider
-		controlPanelProvider = new ControlPanelProvider(axiomaticService);
-		context.subscriptions.push(
-			vscode.window.registerWebviewViewProvider('axiomaticControlPanel', controlPanelProvider)
-		);
+		// Create status bar item
+		statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+		statusBarItem.text = "$(brain) Axiomatic";
+		statusBarItem.tooltip = "Axiomatic Autonomous IDE";
+		statusBarItem.command = 'axiomatic.showStatus';
+		statusBarItem.show();
 
 		// Register commands
 		registerCommands(context);
-
-		// Register status bar item
-		registerStatusBarItem(context);
 
 		// Listen for configuration changes
 		context.subscriptions.push(
 			vscode.workspace.onDidChangeConfiguration(e => {
 				if (e.affectsConfiguration('axiomatic')) {
 					handleConfigurationChange();
+				}
+			})
+		);
+
+		// Learn from file changes
+		context.subscriptions.push(
+			vscode.workspace.onDidChangeTextDocument(event => {
+				if (vscode.workspace.getConfiguration('axiomatic').get('enabled', true)) {
+					learnFromFileChange(event.document);
 				}
 			})
 		);
@@ -69,8 +58,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
 export function deactivate(): void {
 	console.log('Axiomatic Autonomous IDE extension is being deactivated...');
-	if (axiomaticService) {
-		axiomaticService.dispose();
+	if (aiPersistence) {
+		aiPersistence.dispose();
+	}
+	if (statusBarItem) {
+		statusBarItem.dispose();
 	}
 }
 
@@ -79,7 +71,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('axiomatic.initialize', async () => {
 			try {
-				await axiomaticService.initialize();
+				await aiPersistence.initialize();
 				vscode.window.showInformationMessage('Axiomatic system initialized successfully');
 			} catch (error) {
 				vscode.window.showErrorMessage(`Failed to initialize Axiomatic system: ${error}`);
@@ -110,33 +102,8 @@ function registerCommands(context: vscode.ExtensionContext): void {
 			}
 
 			try {
-				const document = activeEditor.document;
-				const content = document.getText();
-				const language = document.languageId;
-				const fileName = document.fileName;
-
-				// Store as episodic memory
-				await axiomaticService.getAIPersistence().storeMemory({
-					id: generateId(),
-					type: 'episodic',
-					content: `Learned from file: ${fileName}`,
-					metadata: {
-						source: 'file_learning',
-						quality: 0.8,
-						confidence: 0.9,
-						importance: 0.7,
-						tags: ['learning', 'file', language, 'code_analysis'],
-						context: {
-							fileName,
-							language,
-							contentLength: content.length,
-							timestamp: new Date()
-						}
-					},
-					timestamp: new Date()
-				});
-
-				vscode.window.showInformationMessage(`Learned from ${fileName}`);
+				await learnFromFile(activeEditor.document);
+				vscode.window.showInformationMessage(`Learned from ${activeEditor.document.fileName}`);
 			} catch (error) {
 				vscode.window.showErrorMessage(`Failed to learn from file: ${error}`);
 			}
@@ -147,7 +114,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('axiomatic.showMemoryStats', async () => {
 			try {
-				const stats = await axiomaticService.getAIPersistence().getMemoryStats();
+				const stats = await aiPersistence.getMemoryStats();
 				const message = `Memory Statistics:
 Total Memories: ${stats.totalMemories}
 Episodic: ${stats.memoriesByType.episodic}
@@ -167,7 +134,7 @@ Last Week: ${stats.recentActivity.lastWeek}`;
 	context.subscriptions.push(
 		vscode.commands.registerCommand('axiomatic.consolidateMemories', async () => {
 			try {
-				await axiomaticService.getAIPersistence().consolidateMemories();
+				await aiPersistence.consolidateMemories();
 				vscode.window.showInformationMessage('Memory consolidation completed');
 			} catch (error) {
 				vscode.window.showErrorMessage(`Failed to consolidate memories: ${error}`);
@@ -194,43 +161,97 @@ Last Week: ${stats.recentActivity.lastWeek}`;
 		})
 	);
 
-	// Open Control Panel
+	// Show Status
 	context.subscriptions.push(
-		vscode.commands.registerCommand('axiomatic.openControlPanel', () => {
-			vscode.commands.executeCommand('axiomaticControlPanel.focus');
+		vscode.commands.registerCommand('axiomatic.showStatus', async () => {
+			try {
+				const stats = await aiPersistence.getMemoryStats();
+				const config = vscode.workspace.getConfiguration('axiomatic');
+				const enabled = config.get('enabled', true);
+				const autonomousMode = config.get('autonomousMode', true);
+
+				const message = `Axiomatic Status:
+Enabled: ${enabled}
+Autonomous Mode: ${autonomousMode}
+Total Memories: ${stats.totalMemories}
+Last 24h Activity: ${stats.recentActivity.last24Hours}`;
+
+				vscode.window.showInformationMessage(message);
+			} catch (error) {
+				vscode.window.showErrorMessage(`Failed to get status: ${error}`);
+			}
 		})
 	);
 }
 
-function registerStatusBarItem(context: vscode.ExtensionContext): void {
-	const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-	statusBarItem.text = "$(brain) Axiomatic";
-	statusBarItem.tooltip = "Axiomatic Autonomous IDE";
-	statusBarItem.command = 'axiomatic.openControlPanel';
-	statusBarItem.show();
+async function learnFromFile(document: vscode.TextDocument): Promise<void> {
+	const content = document.getText();
+	const language = document.languageId;
+	const fileName = document.fileName;
 
-	context.subscriptions.push(statusBarItem);
-
-	// Update status based on Axiomatic status
-	axiomaticService.onStatusChanged(status => {
-		if (status.enabled) {
-			statusBarItem.text = "$(brain) Axiomatic";
-			statusBarItem.backgroundColor = undefined;
-		} else {
-			statusBarItem.text = "$(brain-slash) Axiomatic";
-			statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
-		}
+	// Store as episodic memory
+	await aiPersistence.storeMemory({
+		id: generateId(),
+		type: 'episodic',
+		content: `Learned from file: ${fileName}`,
+		metadata: {
+			source: 'file_learning',
+			quality: 0.8,
+			confidence: 0.9,
+			importance: 0.7,
+			tags: ['learning', 'file', language, 'code_analysis'],
+			context: {
+				fileName,
+				language,
+				contentLength: content.length,
+				timestamp: new Date()
+			}
+		},
+		timestamp: new Date()
 	});
+}
+
+async function learnFromFileChange(document: vscode.TextDocument): Promise<void> {
+	if (document.uri.scheme !== 'file') {
+		return;
+	}
+
+	try {
+		// Simple learning from file changes
+		await aiPersistence.storeMemory({
+			id: generateId(),
+			type: 'episodic',
+			content: `File modified: ${document.fileName}`,
+			metadata: {
+				source: 'file_change',
+				quality: 0.6,
+				confidence: 0.8,
+				importance: 0.5,
+				tags: ['learning', 'file_change', document.languageId],
+				context: {
+					fileName: document.fileName,
+					language: document.languageId,
+					lineCount: document.lineCount,
+					timestamp: new Date()
+				}
+			},
+			timestamp: new Date()
+		});
+	} catch (error) {
+		console.error('Failed to learn from file change:', error);
+	}
 }
 
 async function handleConfigurationChange(): Promise<void> {
 	const config = vscode.workspace.getConfiguration('axiomatic');
 	const enabled = config.get('enabled', true);
 
-	if (enabled && !axiomaticService.isEnabled()) {
-		await axiomaticService.setEnabled(true);
-	} else if (!enabled && axiomaticService.isEnabled()) {
-		await axiomaticService.setEnabled(false);
+	if (enabled) {
+		statusBarItem.text = "$(brain) Axiomatic";
+		statusBarItem.backgroundColor = undefined;
+	} else {
+		statusBarItem.text = "$(brain-slash) Axiomatic";
+		statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
 	}
 }
 

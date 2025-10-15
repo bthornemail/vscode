@@ -80,7 +80,7 @@ export class AxiomaticStatusBarItem extends Disposable implements IWorkbenchCont
 
 		try {
 			// Get Axiomatic service
-			const axiomaticService = this.instantiationService.invokeFunction(accessor => 
+			const axiomaticService = this.instantiationService.invokeFunction(accessor =>
 				accessor.get(IAxiomaticService)
 			);
 
@@ -128,7 +128,7 @@ export class AxiomaticStatusBarItem extends Disposable implements IWorkbenchCont
 
 		} catch (error) {
 			this.logService.warn('AxiomaticStatusBarItem: Failed to update status', error);
-			
+
 			// Show error state
 			if (this.statusBarEntry) {
 				this.statusBarEntry.update({

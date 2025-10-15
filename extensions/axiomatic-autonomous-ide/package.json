@@ -1,0 +1,165 @@
+{
+  "name": "axiomatic-autonomous-ide",
+  "displayName": "Axiomatic Autonomous IDE",
+  "description": "Transform VSCode into an autonomous, offline-first IDE with AI persistence and geometric communication",
+  "version": "1.0.0",
+  "publisher": "axiomatic",
+  "engines": {
+    "vscode": "^1.105.0"
+  },
+  "categories": [
+    "Other",
+    "Machine Learning",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "autonomous",
+    "offline",
+    "geometric",
+    "persistence",
+    "learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "axiomatic.initialize",
+        "title": "Initialize Axiomatic System",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.enableAutonomous",
+        "title": "Enable Autonomous Mode",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.learnFromFile",
+        "title": "Learn from Current File",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.showMemoryStats",
+        "title": "Show Memory Statistics",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.consolidateMemories",
+        "title": "Consolidate Memories",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.exportKnowledge",
+        "title": "Export Knowledge Base",
+        "category": "Axiomatic"
+      },
+      {
+        "command": "axiomatic.openControlPanel",
+        "title": "Open Axiomatic Control Panel",
+        "category": "Axiomatic"
+      }
+    ],
+    "configuration": {
+      "title": "Axiomatic",
+      "properties": {
+        "axiomatic.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Axiomatic autonomous features"
+        },
+        "axiomatic.autonomousMode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autonomous mode for AI agents"
+        },
+        "axiomatic.learningRate": {
+          "type": "string",
+          "enum": ["slow", "normal", "fast", "adaptive"],
+          "default": "adaptive",
+          "description": "Learning rate for AI agents"
+        },
+        "axiomatic.persistenceMode": {
+          "type": "string",
+          "enum": ["embedded", "docker"],
+          "default": "embedded",
+          "description": "AI Persistence storage mode"
+        },
+        "axiomatic.geometricConsciousness": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable geometric consciousness features"
+        },
+        "axiomatic.sacredMathematics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable sacred mathematics integration"
+        },
+        "axiomatic.maxMemories": {
+          "type": "number",
+          "default": 10000,
+          "description": "Maximum number of memories to store"
+        },
+        "axiomatic.consolidationThreshold": {
+          "type": "number",
+          "default": 100,
+          "description": "Threshold for memory consolidation"
+        }
+      }
+    },
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "axiomatic.initialize",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.enableAutonomous",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.learnFromFile",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.showMemoryStats",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.consolidateMemories",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.exportKnowledge",
+          "when": "axiomatic.enabled"
+        },
+        {
+          "command": "axiomatic.openControlPanel",
+          "when": "axiomatic.enabled"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.105.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.45.0",
+    "@typescript-eslint/parser": "^5.45.0",
+    "eslint": "^8.28.0",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "@vscode/sqlite3": "^5.1.6",
+    "uuid": "^9.0.0"
+  }
+}

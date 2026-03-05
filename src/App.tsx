@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react'
 import HyperbolicWorld from './hyperbolic-world/HyperbolicWorld'
+import { AgentChat } from './components/AgentChat'
+import { LogisticsNetwork } from './components/LogisticsNetwork'
+import { AgentDashboard } from './components/AgentDashboard'
 
 // Enhanced UI components with modern design
 const IDEHeader = () => (
@@ -75,55 +78,8 @@ const FileExplorer = () => (
 )
 
 const AgentPanel = () => (
-  <div className="p-4 space-y-4">
-    <div className="flex items-center justify-between">
-      <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">AI Agents</h3>
-      <div className="flex items-center space-x-1">
-        <div className="w-2 h-2 bg-green rounded-full animate-pulse"></div>
-        <span className="text-xs text-green">3 Active</span>
-      </div>
-    </div>
-    <div className="space-y-2">
-      {[
-        { name: 'Architect Agent', status: 'Ready', icon: '🏗️', color: 'blue', tasks: 0 },
-        { name: 'Security Agent', status: 'Scanning', icon: '🔍', color: 'red', tasks: 2 },
-        { name: 'Impact Agent', status: 'Optimizing', icon: '🌱', color: 'green', tasks: 1 },
-      ].map((agent) => (
-        <div key={agent.name} className="card p-3 hover:scale-105 transition-all cursor-pointer group">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="text-lg group-hover:scale-110 transition-transform">{agent.icon}</div>
-              <div>
-                <div className="text-sm font-medium">{agent.name}</div>
-                <div className="text-xs text-muted-foreground">
-                  {agent.tasks} active task{agent.tasks !== 1 ? 's' : ''}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${
-                agent.status === 'Ready' ? 'bg-green' : 
-                agent.status === 'Scanning' ? 'bg-yellow animate-pulse' : 
-                'bg-blue animate-pulse'
-              }`}></div>
-              <span className="text-xs text-muted-foreground">{agent.status}</span>
-            </div>
-          </div>
-        </div>
-      ))}
-    </div>
-    <div className="mt-4">
-      <div className="relative">
-        <input
-          type="text"
-          placeholder="Ask AI agents..."
-          className="input w-full pr-10"
-        />
-        <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
-          <span className="text-sm">🚀</span>
-        </button>
-      </div>
-    </div>
+  <div className="h-full">
+    <AgentChat />
   </div>
 )
 
@@ -253,53 +209,89 @@ const KnowledgeGraphVisualization = ({ viewMode }: { viewMode: '2d' | '3d' }) =>
   );
 }
 
-const BottomPanel = () => (
-  <div className="h-full card border-t border-border">
-    <div className="flex border-b border-border">
-      <button className="px-4 py-2 text-sm border-r border-border bg-accent text-primary font-medium flex items-center space-x-2">
-        <span>💻</span>
-        <span>Console</span>
-        <div className="w-2 h-2 bg-green rounded-full animate-pulse"></div>
-      </button>
-      <button className="px-4 py-2 text-sm border-r border-border hover:bg-hover transition-colors flex items-center space-x-2">
-        <span>🌐</span>
-        <span>P2P Sessions</span>
-        <div className="w-2 h-2 bg-blue rounded-full"></div>
-      </button>
-      <button className="px-4 py-2 text-sm border-r border-border hover:bg-hover transition-colors flex items-center space-x-2">
-        <span>📊</span>
-        <span>Impact Dashboard</span>
-        <div className="w-2 h-2 bg-yellow rounded-full"></div>
-      </button>
+const BottomPanel = () => {
+  const [activeTab, setActiveTab] = useState<'console' | 'logistics' | 'agents'>('console')
+  
+  return (
+    <div className="h-full card border-t border-border">
+      <div className="flex border-b border-border">
+        <button 
+          onClick={() => setActiveTab('console')}
+          className={`px-4 py-2 text-sm border-r border-border flex items-center space-x-2 ${
+            activeTab === 'console' ? 'bg-accent text-primary font-medium' : 'hover:bg-hover transition-colors'
+          }`}
+        >
+          <span>💻</span>
+          <span>Console</span>
+          <div className="w-2 h-2 bg-green rounded-full animate-pulse"></div>
+        </button>
+        <button 
+          onClick={() => setActiveTab('logistics')}
+          className={`px-4 py-2 text-sm border-r border-border flex items-center space-x-2 ${
+            activeTab === 'logistics' ? 'bg-accent text-primary font-medium' : 'hover:bg-hover transition-colors'
+          }`}
+        >
+          <span>🚛</span>
+          <span>Logistics</span>
+          <div className="w-2 h-2 bg-blue rounded-full"></div>
+        </button>
+        <button 
+          onClick={() => setActiveTab('agents')}
+          className={`px-4 py-2 text-sm border-r border-border flex items-center space-x-2 ${
+            activeTab === 'agents' ? 'bg-accent text-primary font-medium' : 'hover:bg-hover transition-colors'
+          }`}
+        >
+          <span>🤖</span>
+          <span>Agents</span>
+          <div className="w-2 h-2 bg-yellow rounded-full"></div>
+        </button>
+      </div>
+      
+      <div className="h-[calc(100%-2.5rem)]">
+        {activeTab === 'console' && (
+          <div className="p-4 font-mono text-sm space-y-2 overflow-auto">
+            <div className="flex items-center space-x-2 text-green">
+              <span>✅</span>
+              <span>Project initialized: my-carbon-marketplace</span>
+              <span className="text-xs text-muted-foreground">2s ago</span>
+            </div>
+            <div className="flex items-center space-x-2 text-blue">
+              <span>🤖</span>
+              <span>AI Agent: Smart contracts generated successfully</span>
+              <span className="text-xs text-muted-foreground">5s ago</span>
+            </div>
+            <div className="flex items-center space-x-2 text-yellow">
+              <span>🌱</span>
+              <span>Impact tracking enabled</span>
+              <span className="text-xs text-muted-foreground">8s ago</span>
+            </div>
+            <div className="flex items-center space-x-2 text-muted-foreground">
+              <span className="animate-pulse">&gt;</span>
+              <span>Ready for regenerative development...</span>
+            </div>
+            <div className="flex items-center space-x-2 text-green">
+              <span>🔗</span>
+              <span>Connected to H²GNN network</span>
+              <span className="text-xs text-muted-foreground">12s ago</span>
+            </div>
+          </div>
+        )}
+        
+        {activeTab === 'logistics' && (
+          <div className="h-full">
+            <LogisticsNetwork />
+          </div>
+        )}
+        
+        {activeTab === 'agents' && (
+          <div className="h-full">
+            <AgentDashboard />
+          </div>
+        )}
+      </div>
     </div>
-    <div className="p-4 font-mono text-sm space-y-2 overflow-auto">
-      <div className="flex items-center space-x-2 text-green">
-        <span>✅</span>
-        <span>Project initialized: my-carbon-marketplace</span>
-        <span className="text-xs text-muted-foreground">2s ago</span>
-      </div>
-      <div className="flex items-center space-x-2 text-blue">
-        <span>🤖</span>
-        <span>AI Agent: Smart contracts generated successfully</span>
-        <span className="text-xs text-muted-foreground">5s ago</span>
-      </div>
-      <div className="flex items-center space-x-2 text-yellow">
-        <span>🌱</span>
-        <span>Impact tracking enabled</span>
-        <span className="text-xs text-muted-foreground">8s ago</span>
-      </div>
-      <div className="flex items-center space-x-2 text-muted-foreground">
-        <span className="animate-pulse">&gt;</span>
-        <span>Ready for regenerative development...</span>
-      </div>
-      <div className="flex items-center space-x-2 text-green">
-        <span>🔗</span>
-        <span>Connected to H²GNN network</span>
-        <span className="text-xs text-muted-foreground">12s ago</span>
-      </div>
-    </div>
-  </div>
-)
+  )
+}
 
 function App() {
   const [isLoading, setIsLoading] = useState(true)

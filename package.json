@@ -93,14 +93,22 @@
     "collaboration",
     "ai-assisted-development"
   ],
-  "author": "H²GNN Team",
-  "license": "MIT",
+  "author": {
+    "name": "Brian Thorne",
+    "email": "bthornemail@gmail.com",
+    "url": "https://github.com/bthornemail"
+  },
+  "license": "GPL-3.0-with-commercial-restrictions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/h2gnn/hyperdev-ide.git"
+    "url": "https://github.com/bthornemail/hyperdev-ide.git"
   },
   "bugs": {
-    "url": "https://github.com/h2gnn/hyperdev-ide/issues"
+    "url": "https://github.com/bthornemail/hyperdev-ide/issues"
   },
-  "homepage": "https://hyperdev.h2gnn.com"
+  "homepage": "https://github.com/bthornemail/hyperdev-ide",
+  "funding": {
+    "type": "individual",
+    "url": ["https://cash.app/$brianthorne", "https://venmo.com/u/brianthorne"]
+  }
 }
